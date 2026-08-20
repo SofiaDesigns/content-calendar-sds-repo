@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Contenido — Sofia Design Studio</title>
+<style>
+  :root{
+    --cream:#F7F2EA;
+    --cream-2:#FBF8F3;
+    --plum:#2E2438;
+    --plum-soft:#5B4E68;
+    --plum-faint:#8A7D96;
+    --lavender:#8E7CC3;
+    --lavender-deep:#6E58A8;
+    --lavender-light:#EAE2F7;
+    --gold:#C6A15B;
+    --gold-light:#F1E4C9;
+    --rose:#B98CA5;
+    --sage:#7FA98A;
+    --slate:#6F8FAF;
+    --grey:#A39B92;
+    --border:#E4DCCE;
+    --shadow: 0 8px 24px rgba(46,36,56,0.08);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--plum);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  .app{max-width:1180px;margin:0 auto;padding:28px 20px 80px;}
+
+  /* ---------- Login / gate screens ---------- */
+  .gate{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;
+    text-align:center;padding:20px;
+  }
+  .gate .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--lavender-deep);font-weight:700;}
+  .gate h1{font-family:Georgia,serif;font-size:30px;margin:6px 0 10px;}
+  .gate p{color:var(--plum-soft);max-width:380px;margin:0 0 22px;font-size:14px;line-height:1.5;}
+  .google-btn{
+    display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--border);
+    border-radius:999px;padding:12px 22px;font-weight:700;font-size:14px;cursor:pointer;color:var(--plum);
+    box-shadow:var(--shadow);
+  }
+  .google-btn:hover{border-color:var(--lavender);}
+  .gate .small-link{margin-top:18px;font-size:12.5px;color:var(--plum-faint);cursor:pointer;text-decoration:underline;}
+
+  /* ---------- Header ---------- */
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    gap:16px;flex-wrap:wrap;margin-bottom:22px;
+    border-bottom:1px solid var(--border);padding-bottom:20px;
+  }
+  h1.title{
+    font-family:Georgia,'Times New Roman',serif;
+    font-size:32px;margin:0;font-weight:600;letter-spacing:-.01em;color:var(--plum);
+  }
+  .eyebrow{
+    font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--lavender-deep);font-weight:700;margin:0 0 4px;
+  }
+  .top-actions{display:flex;align-items:center;gap:12px;}
+  .user-pill{
+    display:flex;align-items:center;gap:8px;background:var(--cream-2);border:1px solid var(--border);
+    border-radius:999px;padding:5px 12px 5px 5px;font-size:12.5px;font-weight:600;color:var(--plum-soft);
+  }
+  .user-pill img{width:22px;height:22px;border-radius:50%;}
+  .role-tag{
+    font-size:10px;text-transform:uppercase;letter-spacing:.05em;font-weight:800;
+    padding:2px 7px;border-radius:999px;
+  }
+  .role-tag.editor{background:var(--lavender-light);color:var(--lavender-deep);}
+  .role-tag.lector{background:var(--gold-light);color:#8A6A2A;}
+  .signout{background:none;border:none;color:var(--plum-faint);cursor:pointer;font-size:12px;text-decoration:underline;}
+  .btn{
+    border:none;border-radius:999px;padding:10px 18px;font-weight:700;font-size:13.5px;
+    cursor:pointer;transition:.15s;letter-spacing:.01em;
+  }
+  .btn-primary{background:var(--lavender-deep);color:#fff;}
+  .btn-primary:hover{background:var(--plum);}
+  .btn-ghost{background:transparent;color:var(--plum-soft);border:1px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--plum-soft);}
+  .btn-danger{background:#fff;color:#B5455A;border:1px solid #E9C7CE;}
+  .btn-danger:hover{background:#FBEEF0;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+
+  /* ---------- Filters (global) ---------- */
+  .filters-panel{
+    background:var(--cream-2);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 16px;margin-bottom:20px;
+  }
+  .filters-row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;}
+  .filter-group{display:flex;flex-direction:column;gap:6px;}
+  .filter-group .fg-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;
+    font-weight:700;color:var(--plum-faint);}
+  .filter-group.dates{flex-direction:row;gap:8px;align-items:flex-end;}
+  .filter-group input[type=date], .filter-group input[type=text]{
+    border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:12.5px;background:#fff;
+  }
+  .toggle-chips{display:flex;flex-wrap:wrap;gap:6px;max-width:340px;}
+  .toggle-chip{
+    display:inline-flex;align-items:center;gap:5px;border:1px solid var(--border);background:#fff;
+    border-radius:999px;padding:4px 10px;font-size:11.5px;font-weight:600;color:var(--plum-soft);cursor:pointer;
+  }
+  .toggle-chip.active{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .filters-actions{margin-left:auto;align-self:flex-end;}
+  .clear-link{font-size:12px;color:var(--plum-faint);cursor:pointer;text-decoration:underline;}
+
+  /* ---------- Stats ---------- */
+  .stats{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:24px;}
+  .stat-card{background:var(--cream-2);border:1px solid var(--border);border-radius:var(--radius);
+    padding:14px 18px;min-width:150px;flex:1;}
+  .stat-card h3{font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--plum-faint);
+    margin:0 0 10px;font-weight:700;}
+  .stat-total{font-family:Georgia,serif;font-size:30px;color:var(--plum);}
+  .chip-row{display:flex;flex-wrap:wrap;gap:6px;}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--border);
+    border-radius:999px;padding:4px 10px 4px 8px;font-size:12px;font-weight:600;color:var(--plum-soft);}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;display:inline-block;}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:6px;margin-bottom:22px;border-bottom:1px solid var(--border);}
+  .tab{padding:10px 16px;font-size:13.5px;font-weight:700;color:var(--plum-faint);
+    cursor:pointer;border-bottom:2px solid transparent;user-select:none;}
+  .tab.active{color:var(--lavender-deep);border-bottom-color:var(--lavender-deep);}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--plum-faint);
+    background:var(--cream-2);border:1px dashed var(--border);border-radius:var(--radius);}
+  .empty b{color:var(--plum-soft);}
+
+  /* ---------- Feed view ---------- */
+  .feed-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
+    background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .feed-cell{position:relative;aspect-ratio:1/1;background:var(--cream-2);cursor:pointer;overflow:hidden;}
+  .feed-cell img{width:100%;height:100%;object-fit:cover;display:block;}
+  .feed-cell .placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+    font-family:Georgia,serif;font-size:13px;text-align:center;padding:10px;color:#fff;}
+  .feed-cell .overlay{position:absolute;inset:0;
+    background:linear-gradient(180deg,rgba(46,36,56,0) 45%,rgba(46,36,56,.88) 100%);
+    display:flex;flex-direction:column;justify-content:flex-end;padding:10px;
+    opacity:0;transition:.15s;color:#fff;}
+  .feed-cell:hover .overlay{opacity:1;}
+  .overlay .ov-tipo{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;opacity:.85;}
+  .overlay .ov-title{font-size:13px;font-weight:700;line-height:1.25;margin:2px 0 3px;}
+  .overlay .ov-date{font-size:11px;opacity:.85;}
+
+  /* ---------- Calendar view ---------- */
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .cal-nav .label{font-family:Georgia,serif;font-size:20px;text-transform:capitalize;}
+  .cal-nav .btns{display:flex;gap:8px;}
+  .cal-nav button{background:var(--cream-2);border:1px solid var(--border);border-radius:8px;
+    width:32px;height:32px;cursor:pointer;font-size:14px;color:var(--plum-soft);}
+  .cal-nav .today-btn{width:auto;padding:0 12px;font-size:12px;font-weight:700;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);
+    border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+  .cal-dow{background:var(--cream-2);text-align:center;padding:8px 0;font-size:10.5px;
+    font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--plum-faint);}
+  .cal-day{background:#fff;min-height:104px;padding:6px;position:relative;}
+  .cal-day.muted{background:var(--cream-2);}
+  .cal-day.today{background:var(--lavender-light);}
+  .cal-daynum{font-size:11.5px;font-weight:700;color:var(--plum-faint);margin-bottom:4px;}
+  .cal-day.today .cal-daynum{color:var(--lavender-deep);}
+  .cal-post{display:flex;align-items:center;gap:4px;background:var(--cream-2);border-radius:6px;
+    padding:2px 5px;margin-bottom:3px;cursor:pointer;font-size:10.5px;font-weight:600;
+    color:var(--plum-soft);border:1px solid transparent;}
+  .cal-post:hover{border-color:var(--border);}
+  .cal-post span.txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .cal-more{font-size:10px;color:var(--plum-faint);padding-left:5px;cursor:pointer;font-weight:700;}
+
+  /* ---------- List view ---------- */
+  table.list{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);
+    border-radius:var(--radius);overflow:hidden;}
+  table.list th{text-align:left;background:var(--cream-2);font-size:10.5px;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--plum-faint);padding:10px 12px;font-weight:700;
+    border-bottom:1px solid var(--border);}
+  table.list td{padding:11px 12px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:top;}
+  table.list tr:last-child td{border-bottom:none;}
+  table.list tr.row-hover:hover{background:var(--cream-2);cursor:pointer;}
+  .tipo-badge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;
+    padding:3px 9px;border-radius:999px;color:#fff;white-space:nowrap;}
+  .cats{display:flex;gap:4px;flex-wrap:wrap;}
+  .cat-chip{background:var(--gold-light);color:#8A6A2A;font-size:10.5px;font-weight:700;
+    padding:2px 8px;border-radius:999px;}
+  .row-actions{display:flex;gap:6px;}
+  .icon-btn{border:1px solid var(--border);background:#fff;border-radius:7px;width:28px;height:28px;
+    cursor:pointer;font-size:13px;color:var(--plum-soft);}
+  .icon-btn:hover{border-color:var(--plum-soft);}
+
+  /* ---------- Kanban view ---------- */
+  .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
+  .kanban-col{min-width:250px;flex:1;background:var(--cream-2);border:1px solid var(--border);
+    border-radius:var(--radius);padding:12px;}
+  .kanban-col h4{display:flex;align-items:center;gap:7px;font-size:13px;margin:0 0 12px;font-weight:800;
+    color:var(--plum);}
+  .kanban-col h4 .count{margin-left:auto;background:#fff;border:1px solid var(--border);
+    border-radius:999px;padding:1px 8px;font-size:11px;color:var(--plum-faint);}
+  .kanban-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:10px 12px;
+    margin-bottom:8px;cursor:pointer;box-shadow:var(--shadow);}
+  .kanban-card:hover{border-color:var(--lavender);}
+  .kanban-card .kc-title{font-weight:700;font-size:13px;margin-bottom:4px;color:var(--plum);}
+  .kanban-card .kc-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--plum-faint);}
+  .kanban-col.empty-col{color:var(--plum-faint);font-size:12px;text-align:center;padding:20px 6px;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(46,36,56,.45);display:none;
+    align-items:flex-start;justify-content:center;z-index:50;padding:40px 16px;overflow-y:auto;}
+  .modal-backdrop.open{display:flex;}
+  .modal{background:#fff;border-radius:18px;max-width:560px;width:100%;padding:28px;
+    box-shadow:0 20px 60px rgba(46,36,56,.25);}
+  .modal h2{font-family:Georgia,serif;font-size:22px;margin:0 0 18px;color:var(--plum);}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--plum-faint);margin-bottom:6px;}
+  .field input[type=text], .field input[type=date], .field input[type=url],
+  .field select, .field textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;
+    font-size:13.5px;font-family:inherit;color:var(--plum);background:var(--cream-2);}
+  .field textarea{resize:vertical;min-height:60px;}
+  .field-row{display:flex;gap:12px;}
+  .field-row .field{flex:1;}
+  .persona-row{display:flex;gap:8px;}
+  .persona-row select{flex:1;}
+  .persona-row button{border:1px solid var(--border);background:var(--cream-2);border-radius:9px;
+    width:38px;font-size:16px;cursor:pointer;color:var(--plum-soft);}
+  .img-preview{margin-top:8px;width:100%;height:140px;border-radius:10px;object-fit:cover;
+    border:1px solid var(--border);display:none;}
+  .upload-progress{font-size:11.5px;color:var(--plum-faint);margin-top:6px;display:none;}
+  .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:22px;
+    padding-top:16px;border-top:1px solid var(--border);}
+  .modal-actions .right{display:flex;gap:8px;}
+  .modal-meta{font-size:11px;color:var(--plum-faint);margin-top:-8px;margin-bottom:14px;}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+    background:var(--plum);color:var(--cream);padding:10px 18px;border-radius:999px;
+    font-size:13px;font-weight:600;box-shadow:var(--shadow);z-index:80;opacity:0;
+    transition:opacity .2s;pointer-events:none;}
+  .toast.show{opacity:1;}
+
+  .hidden{display:none !important;}
+
+  @media(max-width:640px){
+    .feed-grid{grid-template-columns:repeat(3,1fr);}
+    .field-row{flex-direction:column;}
+    header.top{flex-direction:column;align-items:flex-start;}
+    table.list{display:block;overflow-x:auto;}
+    .filters-row{flex-direction:column;}
+    .filters-actions{margin-left:0;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN GATE ===================== -->
+<div class="gate" id="screenLogin">
+  <p class="eyebrow">Sofia Design Studio</p>
+  <h1>Calendario de contenido</h1>
+  <p>Iniciá sesión con tu cuenta de Google para ver o editar el calendario. El acceso lo administra Sofia.</p>
+  <button class="google-btn" id="btnGoogleLogin">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.88 2.7-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.95v2.33A9 9 0 009 18z"/><path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.16.27-1.7V4.97H.95A9 9 0 000 9c0 1.45.35 2.83.95 4.03l3-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.95 4.97l3 2.33C4.66 5.17 6.65 3.58 9 3.58z"/></svg>
+    Iniciar sesión con Google
+  </button>
+</div>
+
+<!-- ===================== NO ACCESS SCREEN ===================== -->
+<div class="gate hidden" id="screenNoAccess">
+  <p class="eyebrow">Sofia Design Studio</p>
+  <h1>Todavía no tenés acceso</h1>
+  <p>Tu cuenta <b id="noAccessEmail"></b> inició sesión correctamente, pero no está habilitada para ver este calendario. Pedile a Sofia que te agregue.</p>
+  <span class="small-link" id="btnSignOutNoAccess">Cerrar sesión</span>
+</div>
+
+<!-- ===================== MAIN APP ===================== -->
+<div class="app hidden" id="screenApp">
+
+  <header class="top">
+    <div>
+      <p class="eyebrow">Sofia Design Studio</p>
+      <h1 class="title">Calendario de contenido</h1>
+    </div>
+    <div class="top-actions">
+      <div class="user-pill">
+        <img id="userPhoto" src="" alt="">
+        <span id="userName"></span>
+        <span class="role-tag" id="userRoleTag"></span>
+      </div>
+      <button class="signout" id="btnSignOut">Cerrar sesión</button>
+      <button class="btn btn-primary" id="btnNuevo" onclick="openModal()">+ Nuevo posteo</button>
+    </div>
+  </header>
+
+  <div class="filters-panel">
+    <div class="filters-row">
+      <div class="filter-group dates">
+        <div>
+          <div class="fg-label">Desde</div>
+          <input type="date" id="filterDesde">
+        </div>
+        <div>
+          <div class="fg-label">Hasta</div>
+          <input type="date" id="filterHasta">
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="fg-label">Tipo</div>
+        <div class="toggle-chips" id="filterTiposChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="fg-label">Persona</div>
+        <div class="toggle-chips" id="filterPersonasChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="fg-label">Objetivo</div>
+        <div class="toggle-chips" id="filterObjetivosChips"></div>
+      </div>
+      <div class="filter-group">
+        <div class="fg-label">Buscar</div>
+        <input type="text" id="filterSearch" placeholder="Título o copy…">
+      </div>
+      <div class="filters-actions">
+        <span class="clear-link" onclick="clearFilters()">Limpiar filtros</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats" id="statsBar"></div>
+
+  <div class="tabs">
+    <div class="tab active" data-view="feed" onclick="switchView('feed')">Feed</div>
+    <div class="tab" data-view="calendario" onclick="switchView('calendario')">Calendario</div>
+    <div class="tab" data-view="lista" onclick="switchView('lista')">Lista</div>
+    <div class="tab" data-view="tipo" onclick="switchView('tipo')">Por tipo</div>
+  </div>
+
+  <div id="viewFeed"></div>
+  <div id="viewCalendario" style="display:none;"></div>
+  <div id="viewLista" style="display:none;"></div>
+  <div id="viewTipo" style="display:none;"></div>
+
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h2 id="modalTitle">Nuevo posteo</h2>
+    <div class="modal-meta" id="modalMeta"></div>
+
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="f_titulo" placeholder="Ej: Antes/después rediseño web cliente">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Tipo</label>
+        <select id="f_tipo"></select>
+      </div>
+      <div class="field">
+        <label>Objetivo</label>
+        <select id="f_objetivo"></select>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Fecha de publicación</label>
+        <input type="date" id="f_fecha">
+      </div>
+      <div class="field">
+        <label>Persona encargada</label>
+        <div class="persona-row">
+          <select id="f_persona"></select>
+          <button type="button" title="Agregar persona" onclick="addPersonaPrompt()">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Idea</label>
+      <textarea id="f_idea" placeholder="La idea o concepto detrás del posteo"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Descripción / copy</label>
+      <textarea id="f_copy" placeholder="Texto para el posteo" style="min-height:90px;"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Categorías (separadas por coma)</label>
+      <input type="text" id="f_categorias" placeholder="Ej: branding, astrología, tips">
+    </div>
+
+    <div class="field">
+      <label>Imagen (URL)</label>
+      <input type="url" id="f_imagenUrl" placeholder="https://..." oninput="previewImage()">
+      <img id="imgPreview" class="img-preview">
+    </div>
+
+    <div class="modal-actions">
+      <div class="left">
+        <button class="btn btn-danger" id="btnDelete" style="display:none;" onclick="deleteCurrentPost()">Eliminar</button>
+      </div>
+      <div class="right">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" id="btnGuardar" onclick="savePost()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot,
+  getDoc, serverTimestamp, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+/* Nota: no usamos Firebase Storage (subida de archivos) porque desde 2026
+   Google exige el plan de pago Blaze incluso para el nivel gratuito de Storage.
+   Las imágenes se manejan solo por URL, sin costo ni tarjeta. */
+
+/* =====================================================================
+   1) PEGÁ ACÁ LA CONFIGURACIÓN DE TU PROYECTO FIREBASE
+   La conseguís en: Firebase Console > Configuración del proyecto > Tus apps > SDK config
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBHPh24Wp7rV7iYcFMqkz-GmxRAde-5e3k",
+  authDomain: "content-calendar-sds.firebaseapp.com",
+  databaseURL: "https://content-calendar-sds-default-rtdb.firebaseio.com",
+  projectId: "content-calendar-sds",
+  storageBucket: "content-calendar-sds.firebasestorage.app",
+  messagingSenderId: "26650717219",
+  appId: "1:26650717219:web:ca5c8843b909cfc4af5596"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+/* ================= CONFIG ================= */
+const TIPOS = [
+  {id:'Carrusel', color:'#8E7CC3'},
+  {id:'Reel', color:'#C6A15B'},
+  {id:'Imagen única', color:'#B98CA5'},
+  {id:'Historia', color:'#7FA98A'},
+  {id:'Ad', color:'#4A3B5C'},
+  {id:'Video', color:'#6F8FAF'},
+  {id:'Otro', color:'#A39B92'},
+];
+const OBJETIVOS = [
+  'Venta','Adquisición de audiencia','Interacción','Awareness / Alcance',
+  'Fidelización','Tráfico al sitio','Otro'
+];
+const DOW = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+/* ================= STATE ================= */
+let state = {
+  posts: [],
+  people: ['Sofia'],
+  role: null,          // 'editor' | 'lector'
+  userEmail: null,
+  view: 'feed',
+  editingId: null,
+  calMonth: new Date().getMonth(),
+  calYear: new Date().getFullYear(),
+  filterDesde: '',
+  filterHasta: '',
+  filterTipos: new Set(),
+  filterPersonas: new Set(),
+  filterObjetivos: new Set(),
+  filterSearch: ''
+};
+
+function tipoColor(t){
+  const f = TIPOS.find(x=>x.id===t);
+  return f ? f.color : '#A39B92';
+}
+function isEditor(){ return state.role === 'editor'; }
+
+/* ================= AUTH ================= */
+document.getElementById('btnGoogleLogin').onclick = ()=>{
+  signInWithPopup(auth, googleProvider).catch(e=>{
+    alert('No se pudo iniciar sesión: ' + e.message);
+  });
+};
+document.getElementById('btnSignOut').onclick = ()=> signOut(auth);
+document.getElementById('btnSignOutNoAccess').onclick = ()=> signOut(auth);
+
+let unsubPosts = null, unsubPeople = null;
+
+onAuthStateChanged(auth, async (user)=>{
+  show('screenLogin', false); show('screenNoAccess', false); show('screenApp', false);
+  if(unsubPosts) unsubPosts();
+  if(unsubPeople) unsubPeople();
+
+  if(!user){
+    show('screenLogin', true);
+    return;
+  }
+
+  let roleDoc;
+  try{
+    roleDoc = await getDoc(doc(db, 'roles', user.email));
+  }catch(e){
+    // Firestore rules may block read until a role doc exists — treat as no access
+    roleDoc = null;
+  }
+
+  if(!roleDoc || !roleDoc.exists()){
+    document.getElementById('noAccessEmail').textContent = user.email;
+    show('screenNoAccess', true);
+    return;
+  }
+
+  state.role = roleDoc.data().role === 'editor' ? 'editor' : 'lector';
+  state.userEmail = user.email;
+
+  document.getElementById('userPhoto').src = user.photoURL || '';
+  document.getElementById('userName').textContent = user.displayName || user.email;
+  const tag = document.getElementById('userRoleTag');
+  tag.textContent = state.role === 'editor' ? 'Editor' : 'Lector';
+  tag.className = 'role-tag ' + state.role;
+  document.getElementById('btnNuevo').style.display = isEditor() ? 'inline-block' : 'none';
+
+  show('screenApp', true);
+
+  unsubPosts = onSnapshot(collection(db,'posts'), snap=>{
+    state.posts = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    renderAll();
+  }, err=>{ console.error(err); showToast('No se pudieron cargar los posteos.'); });
+
+  unsubPeople = onSnapshot(doc(db,'people','list'), snap=>{
+    state.people = (snap.exists() && snap.data().names && snap.data().names.length)
+      ? snap.data().names : ['Sofia'];
+    populateSelects();
+    renderAll();
+  }, err=>{ console.error(err); });
+
+  switchView('feed');
+});
+
+function show(id, on){ document.getElementById(id).classList.toggle('hidden', !on); }
+
+/* ================= PEOPLE ================= */
+async function addPersonaPrompt(){
+  const name = prompt('Nombre de la nueva persona:');
+  if(!name) return;
+  const trimmed = name.trim();
+  if(!trimmed) return;
+  try{
+    await setDoc(doc(db,'people','list'), { names: arrayUnion(trimmed) }, { merge:true });
+  }catch(e){ showToast('No se pudo agregar. ¿Tenés permisos de editor?'); return; }
+  document.getElementById('f_persona').value = trimmed;
+}
+window.addPersonaPrompt = addPersonaPrompt;
+
+/* ================= FILTERS ================= */
+function buildFilterChips(){
+  const tiposEl = document.getElementById('filterTiposChips');
+  tiposEl.innerHTML = TIPOS.map(t=>`<div class="toggle-chip" data-val="${t.id}" onclick="toggleFilter('tipos','${t.id}')">
+    <span class="dot" style="background:${t.color}"></span>${t.id}</div>`).join('');
+
+  const objEl = document.getElementById('filterObjetivosChips');
+  objEl.innerHTML = OBJETIVOS.map(o=>`<div class="toggle-chip" data-val="${o}" onclick="toggleFilter('objetivos','${o}')">${o}</div>`).join('');
+
+  refreshPersonaChips();
+}
+function refreshPersonaChips(){
+  const el = document.getElementById('filterPersonasChips');
+  el.innerHTML = state.people.map(p=>`<div class="toggle-chip" data-val="${escapeAttr(p)}" onclick="toggleFilter('personas','${escapeAttr(p)}')">${escapeHtml(p)}</div>`).join('');
+  syncFilterChipUI();
+}
+function toggleFilter(kind, val){
+  const setRef = kind==='tipos'?state.filterTipos : kind==='personas'?state.filterPersonas : state.filterObjetivos;
+  if(setRef.has(val)) setRef.delete(val); else setRef.add(val);
+  syncFilterChipUI();
+  renderAll();
+}
+window.toggleFilter = toggleFilter;
+function syncFilterChipUI(){
+  document.querySelectorAll('#filterTiposChips .toggle-chip').forEach(c=>c.classList.toggle('active', state.filterTipos.has(c.dataset.val)));
+  document.querySelectorAll('#filterPersonasChips .toggle-chip').forEach(c=>c.classList.toggle('active', state.filterPersonas.has(c.dataset.val)));
+  document.querySelectorAll('#filterObjetivosChips .toggle-chip').forEach(c=>c.classList.toggle('active', state.filterObjetivos.has(c.dataset.val)));
+}
+document.getElementById('filterDesde').addEventListener('change', e=>{ state.filterDesde=e.target.value; renderAll(); });
+document.getElementById('filterHasta').addEventListener('change', e=>{ state.filterHasta=e.target.value; renderAll(); });
+document.getElementById('filterSearch').addEventListener('input', e=>{ state.filterSearch=e.target.value; renderAll(); });
+
+function clearFilters(){
+  state.filterDesde=''; state.filterHasta=''; state.filterSearch='';
+  state.filterTipos.clear(); state.filterPersonas.clear(); state.filterObjetivos.clear();
+  document.getElementById('filterDesde').value='';
+  document.getElementById('filterHasta').value='';
+  document.getElementById('filterSearch').value='';
+  syncFilterChipUI();
+  renderAll();
+}
+window.clearFilters = clearFilters;
+
+function filteredPosts(){
+  return state.posts.filter(p=>{
+    if(state.filterDesde && p.fecha < state.filterDesde) return false;
+    if(state.filterHasta && p.fecha > state.filterHasta) return false;
+    if(state.filterTipos.size && !state.filterTipos.has(p.tipo)) return false;
+    if(state.filterPersonas.size && !state.filterPersonas.has(p.persona)) return false;
+    if(state.filterObjetivos.size && !state.filterObjetivos.has(p.objetivo)) return false;
+    if(state.filterSearch){
+      const s = state.filterSearch.toLowerCase();
+      const hay = (p.titulo||'').toLowerCase().includes(s) || (p.descripcion||'').toLowerCase().includes(s);
+      if(!hay) return false;
+    }
+    return true;
+  });
+}
+
+/* ================= TABS ================= */
+function switchView(v){
+  state.view = v;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===v));
+  ['feed','calendario','lista','tipo'].forEach(x=>{
+    document.getElementById('view'+x.charAt(0).toUpperCase()+x.slice(1)).style.display = (x===v)?'block':'none';
+  });
+  renderAll();
+}
+window.switchView = switchView;
+
+/* ================= RENDER: DISPATCH ================= */
+function renderAll(){
+  buildFilterChipsOnce();
+  renderStats();
+  renderFeed();
+  renderCalendar();
+  renderLista();
+  renderKanban();
+}
+let chipsBuilt = false;
+function buildFilterChipsOnce(){
+  if(chipsBuilt){ refreshPersonaChips(); return; }
+  buildFilterChips();
+  chipsBuilt = true;
+}
+
+/* ================= STATS ================= */
+function renderStats(){
+  const bar = document.getElementById('statsBar');
+  const posts = filteredPosts();
+  const byTipo = {}, byPersona = {}, byObjetivo = {};
+  posts.forEach(p=>{
+    byTipo[p.tipo] = (byTipo[p.tipo]||0)+1;
+    byPersona[p.persona] = (byPersona[p.persona]||0)+1;
+    byObjetivo[p.objetivo] = (byObjetivo[p.objetivo]||0)+1;
+  });
+  let html = `<div class="stat-card"><h3>Total (según filtros)</h3><div class="stat-total">${posts.length}</div></div>`;
+
+  let tipoChips = TIPOS.filter(t=>byTipo[t.id]).map(t=>
+    `<span class="chip"><span class="dot" style="background:${t.color}"></span>${t.id} · ${byTipo[t.id]}</span>`).join('');
+  html += `<div class="stat-card"><h3>Por tipo</h3><div class="chip-row">${tipoChips || '<span class="chip">Sin datos</span>'}</div></div>`;
+
+  let personaChips = Object.keys(byPersona).map(name=>
+    `<span class="chip"><span class="dot" style="background:var(--lavender)"></span>${escapeHtml(name)} · ${byPersona[name]}</span>`).join('');
+  html += `<div class="stat-card"><h3>Por persona</h3><div class="chip-row">${personaChips || '<span class="chip">Sin datos</span>'}</div></div>`;
+
+  let objChips = Object.keys(byObjetivo).map(o=>
+    `<span class="chip"><span class="dot" style="background:var(--gold)"></span>${escapeHtml(o)} · ${byObjetivo[o]}</span>`).join('');
+  html += `<div class="stat-card"><h3>Por objetivo</h3><div class="chip-row">${objChips || '<span class="chip">Sin datos</span>'}</div></div>`;
+
+  bar.innerHTML = html;
+}
+
+/* ================= FEED VIEW ================= */
+function renderFeed(){
+  const el = document.getElementById('viewFeed');
+  if(state.view !== 'feed') return;
+  const posts = filteredPosts();
+  if(posts.length===0){ el.innerHTML = emptyState(); return; }
+  const sorted = [...posts].sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
+  el.innerHTML = `<div class="feed-grid">${sorted.map(p=>{
+    const img = p.imagen ? `<img src="${escapeAttr(p.imagen)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : '';
+    const placeholder = `<div class="placeholder" style="background:${tipoColor(p.tipo)}; ${p.imagen?'display:none;':''}">${escapeHtml(p.titulo || p.tipo)}</div>`;
+    return `<div class="feed-cell" onclick="openModal('${p.id}')">
+      ${img}${placeholder}
+      <div class="overlay">
+        <div class="ov-tipo">${escapeHtml(p.tipo)}</div>
+        <div class="ov-title">${escapeHtml(p.titulo || '(sin título)')}</div>
+        <div class="ov-date">${formatDate(p.fecha)}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+/* ================= CALENDAR VIEW ================= */
+function renderCalendar(){
+  const el = document.getElementById('viewCalendario');
+  if(state.view !== 'calendario') return;
+
+  const y = state.calYear, m = state.calMonth;
+  const firstDay = new Date(y, m, 1);
+  let startOffset = firstDay.getDay() - 1;
+  if(startOffset < 0) startOffset = 6;
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+  const daysInPrevMonth = new Date(y, m, 0).getDate();
+
+  const today = new Date();
+  const isToday = (d)=> d===today.getDate() && m===today.getMonth() && y===today.getFullYear();
+
+  const posts = filteredPosts();
+  const postsByDay = {};
+  posts.forEach(p=>{
+    if(!p.fecha) return;
+    const d = new Date(p.fecha+'T00:00:00');
+    if(d.getFullYear()===y && d.getMonth()===m){
+      const day = d.getDate();
+      (postsByDay[day] = postsByDay[day]||[]).push(p);
+    }
+  });
+
+  let cells = '';
+  for(let i=0;i<startOffset;i++){
+    const dnum = daysInPrevMonth - startOffset + i + 1;
+    cells += `<div class="cal-day muted"><div class="cal-daynum">${dnum}</div></div>`;
+  }
+  for(let d=1; d<=daysInMonth; d++){
+    const dayPosts = (postsByDay[d]||[]).sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||''));
+    const maxShow = 3;
+    const chips = dayPosts.slice(0,maxShow).map(p=>
+      `<div class="cal-post" onclick="openModal('${p.id}')" title="${escapeAttr(p.titulo||p.tipo)}">
+        <span class="dot" style="background:${tipoColor(p.tipo)}"></span>
+        <span class="txt">${escapeHtml(p.titulo || p.tipo)}</span>
+      </div>`).join('');
+    const more = dayPosts.length>maxShow ? `<div class="cal-more">+${dayPosts.length-maxShow} más</div>` : '';
+    cells += `<div class="cal-day ${isToday(d)?'today':''}"><div class="cal-daynum">${d}</div>${chips}${more}</div>`;
+  }
+  const totalCells = startOffset + daysInMonth;
+  const trailing = (7 - (totalCells % 7)) % 7;
+  for(let i=1;i<=trailing;i++){
+    cells += `<div class="cal-day muted"><div class="cal-daynum">${i}</div></div>`;
+  }
+
+  el.innerHTML = `
+    <div class="cal-nav">
+      <div class="label">${MESES[m]} ${y}</div>
+      <div class="btns">
+        <button onclick="calShift(-1)">‹</button>
+        <button class="today-btn" onclick="calToday()">Hoy</button>
+        <button onclick="calShift(1)">›</button>
+      </div>
+    </div>
+    <div class="cal-grid">${DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('')}${cells}</div>`;
+}
+function calShift(dir){
+  state.calMonth += dir;
+  if(state.calMonth<0){state.calMonth=11;state.calYear--;}
+  if(state.calMonth>11){state.calMonth=0;state.calYear++;}
+  renderCalendar();
+}
+function calToday(){
+  const t = new Date();
+  state.calMonth = t.getMonth();
+  state.calYear = t.getFullYear();
+  renderCalendar();
+}
+window.calShift = calShift;
+window.calToday = calToday;
+
+/* ================= LIST VIEW ================= */
+function renderLista(){
+  const el = document.getElementById('viewLista');
+  if(state.view !== 'lista') return;
+  const posts = [...filteredPosts()].sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
+
+  if(state.posts.length===0){ el.innerHTML = emptyState(); return; }
+
+  const rows = posts.map(p=>{
+    const cats = (p.categorias||[]).map(c=>`<span class="cat-chip">${escapeHtml(c)}</span>`).join('');
+    const actions = isEditor() ? `
+      <div class="row-actions">
+        <button class="icon-btn" title="Editar" onclick="event.stopPropagation();openModal('${p.id}')">✎</button>
+        <button class="icon-btn" title="Eliminar" onclick="event.stopPropagation();quickDelete('${p.id}')">✕</button>
+      </div>` : '';
+    return `<tr class="row-hover" onclick="openModal('${p.id}')">
+      <td>${formatDate(p.fecha)}</td>
+      <td><b>${escapeHtml(p.titulo || '(sin título)')}</b></td>
+      <td><span class="tipo-badge" style="background:${tipoColor(p.tipo)}">${escapeHtml(p.tipo)}</span></td>
+      <td>${escapeHtml(p.objetivo||'')}</td>
+      <td>${escapeHtml(p.persona||'')}</td>
+      <td><div class="cats">${cats}</div></td>
+      <td>${actions}</td>
+    </tr>`;
+  }).join('');
+
+  el.innerHTML = `
+    ${posts.length===0 ? `<div class="empty">Ningún posteo coincide con los filtros actuales.</div>` : `
+    <table class="list">
+      <thead><tr><th>Fecha</th><th>Título</th><th>Tipo</th><th>Objetivo</th><th>Persona</th><th>Categorías</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`}
+  `;
+}
+
+/* ================= KANBAN VIEW ================= */
+function renderKanban(){
+  const el = document.getElementById('viewTipo');
+  if(state.view !== 'tipo') return;
+  const posts = filteredPosts();
+  if(state.posts.length===0){ el.innerHTML = emptyState(); return; }
+
+  el.innerHTML = `<div class="kanban">${TIPOS.map(t=>{
+    const tPosts = posts.filter(p=>p.tipo===t.id).sort((a,b)=> new Date(a.fecha)-new Date(b.fecha));
+    const cards = tPosts.map(p=>`
+      <div class="kanban-card" onclick="openModal('${p.id}')">
+        <div class="kc-title">${escapeHtml(p.titulo || '(sin título)')}</div>
+        <div class="kc-meta"><span>${formatDate(p.fecha)}</span><span>${escapeHtml(p.persona||'')}</span></div>
+      </div>`).join('');
+    return `<div class="kanban-col">
+      <h4><span class="dot" style="background:${t.color}"></span>${t.id}<span class="count">${tPosts.length}</span></h4>
+      ${tPosts.length? cards : `<div class="empty-col">Sin posteos</div>`}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function emptyState(){
+  return `<div class="empty">Todavía no hay posteos cargados.<br><b>${isEditor() ? 'Tocá "+ Nuevo posteo" para empezar.' : 'Pedile a alguien con rol de editor que cargue el primero.'}</b></div>`;
+}
+
+/* ================= MODAL ================= */
+function populateSelects(){
+  document.getElementById('f_tipo').innerHTML = TIPOS.map(t=>`<option value="${t.id}">${t.id}</option>`).join('');
+  document.getElementById('f_objetivo').innerHTML = OBJETIVOS.map(o=>`<option value="${o}">${o}</option>`).join('');
+  document.getElementById('f_persona').innerHTML = state.people.map(p=>`<option value="${escapeAttr(p)}">${escapeHtml(p)}</option>`).join('');
+}
+
+function openModal(id){
+  if(!isEditor() && !id) return;
+  populateSelects();
+  state.editingId = id || null;
+  const backdrop = document.getElementById('modalBackdrop');
+  const readOnly = !isEditor();
+
+  if(id){
+    const p = state.posts.find(x=>x.id===id);
+    if(!p) return;
+    document.getElementById('modalTitle').textContent = readOnly ? 'Detalle del posteo' : 'Editar posteo';
+    document.getElementById('modalMeta').textContent = p.createdBy ? `Cargado por ${p.createdBy}` : '';
+    document.getElementById('f_titulo').value = p.titulo||'';
+    document.getElementById('f_tipo').value = p.tipo||TIPOS[0].id;
+    document.getElementById('f_objetivo').value = p.objetivo||OBJETIVOS[0];
+    document.getElementById('f_fecha').value = p.fecha||'';
+    document.getElementById('f_persona').value = p.persona||state.people[0];
+    document.getElementById('f_idea').value = p.idea||'';
+    document.getElementById('f_copy').value = p.descripcion||'';
+    document.getElementById('f_categorias').value = (p.categorias||[]).join(', ');
+    document.getElementById('f_imagenUrl').value = p.imagen||'';
+    document.getElementById('btnDelete').style.display = readOnly ? 'none' : 'inline-block';
+  }else{
+    document.getElementById('modalTitle').textContent = 'Nuevo posteo';
+    document.getElementById('modalMeta').textContent = '';
+    ['f_titulo','f_fecha','f_idea','f_copy','f_categorias','f_imagenUrl'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('f_tipo').value = TIPOS[0].id;
+    document.getElementById('f_objetivo').value = OBJETIVOS[0];
+    document.getElementById('f_persona').value = state.people[0];
+    document.getElementById('btnDelete').style.display = 'none';
+  }
+  previewImage();
+
+  document.querySelectorAll('#modalBackdrop input, #modalBackdrop select, #modalBackdrop textarea').forEach(el=>{
+    el.disabled = readOnly;
+  });
+  document.querySelector('.modal-actions .right').style.display = readOnly ? 'none' : 'flex';
+
+  backdrop.classList.add('open');
+}
+window.openModal = openModal;
+
+function closeModal(){
+  document.getElementById('modalBackdrop').classList.remove('open');
+  state.editingId = null;
+}
+window.closeModal = closeModal;
+
+function previewImage(){
+  const url = document.getElementById('f_imagenUrl').value.trim();
+  const img = document.getElementById('imgPreview');
+  if(url){
+    img.src = url;
+    img.style.display = 'block';
+    img.onerror = ()=>{ img.style.display='none'; };
+  }else{
+    img.style.display = 'none';
+  }
+}
+window.previewImage = previewImage;
+
+async function savePost(){
+  if(!isEditor()) return;
+  const titulo = document.getElementById('f_titulo').value.trim();
+  const tipo = document.getElementById('f_tipo').value;
+  const objetivo = document.getElementById('f_objetivo').value;
+  const fecha = document.getElementById('f_fecha').value;
+  const persona = document.getElementById('f_persona').value;
+  const idea = document.getElementById('f_idea').value.trim();
+  const descripcion = document.getElementById('f_copy').value.trim();
+  const categorias = document.getElementById('f_categorias').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const imagen = document.getElementById('f_imagenUrl').value.trim();
+
+  if(!titulo){ showToast('Poné al menos un título.'); return; }
+  if(!fecha){ showToast('Elegí una fecha de publicación.'); return; }
+
+  const btn = document.getElementById('btnGuardar');
+  btn.disabled = true;
+
+  try{
+    const id = state.editingId || doc(collection(db,'posts')).id;
+
+    const data = {
+      titulo, tipo, objetivo, fecha, persona, idea, descripcion, categorias, imagen,
+      updatedAt: serverTimestamp()
+    };
+    if(state.editingId){
+      await updateDoc(doc(db,'posts',id), data);
+    }else{
+      data.createdBy = state.userEmail;
+      data.createdAt = serverTimestamp();
+      await setDoc(doc(db,'posts',id), data);
+    }
+    closeModal();
+    showToast('Guardado ✓');
+  }catch(e){
+    console.error(e);
+    showToast('No se pudo guardar: ' + e.message);
+  }finally{
+    btn.disabled = false;
+  }
+}
+window.savePost = savePost;
+
+async function deleteCurrentPost(){
+  if(!state.editingId || !isEditor()) return;
+  if(!confirm('¿Eliminar este posteo?')) return;
+  try{
+    await deleteDoc(doc(db,'posts',state.editingId));
+    closeModal();
+    showToast('Posteo eliminado');
+  }catch(e){ showToast('No se pudo eliminar.'); }
+}
+window.deleteCurrentPost = deleteCurrentPost;
+
+async function quickDelete(id){
+  if(!isEditor()) return;
+  if(!confirm('¿Eliminar este posteo?')) return;
+  try{
+    await deleteDoc(doc(db,'posts',id));
+    showToast('Posteo eliminado');
+  }catch(e){ showToast('No se pudo eliminar.'); }
+}
+window.quickDelete = quickDelete;
+
+/* ================= UTIL ================= */
+function formatDate(str){
+  if(!str) return '—';
+  const d = new Date(str+'T00:00:00');
+  if(isNaN(d)) return str;
+  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+}
+function escapeHtml(str){
+  return String(str??'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function escapeAttr(str){ return escapeHtml(str); }
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+</script>
+</body>
+</html>
