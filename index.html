@@ -460,7 +460,15 @@ const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto'
 /* ================= HELPERS DRIVE ================= */
 function convertDriveUrl(url) {
   if (!url) return '';
-  const match = url.match(/(?:file\/d\/|id=)([\w-]+)/);
+  // Elimina espacios extra
+  url = url.trim();
+  
+  // Extrae el ID de enlaces como:
+  // - drive.google.com/file/d/ID/view...
+  // - drive.google.com/open?id=ID
+  // - drive.google.com/uc?id=ID
+  const match = url.match(/(?:file\/d\/|id=|d\/)([\w-]{25,})/);
+  
   if (match && match[1]) {
     return `https://lh3.googleusercontent.com/d/${match[1]}`;
   }
