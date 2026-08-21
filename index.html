@@ -218,18 +218,17 @@
   .field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;
     letter-spacing:.06em;color:var(--plum-faint);margin-bottom:6px;}
   .field input[type=text], .field input[type=date], .field input[type=url],
-  .field select, .field textarea{width:100%;border:1px solid var(--border);border-radius:9px;padding:10px 12px;
+  .field select, .field textarea{width:100%;border:1px solid var(--border);border-radius:999px;padding:10px 12px;
     font-size:13.5px;font-family:inherit;color:var(--plum);background:var(--cream-2);}
-  .field textarea{resize:vertical;min-height:60px;}
+  .field textarea{resize:vertical;min-height:60px;border-radius:12px;}
   .field-row{display:flex;gap:12px;}
   .field-row .field{flex:1;}
   .persona-row{display:flex;gap:8px;}
   .persona-row select{flex:1;}
-  .persona-row button{border:1px solid var(--border);background:var(--cream-2);border-radius:9px;
+  .persona-row button{border:1px solid var(--border);background:var(--cream-2);border-radius:999px;
     width:38px;font-size:16px;cursor:pointer;color:var(--plum-soft);}
   .img-preview{margin-top:8px;width:100%;height:140px;border-radius:10px;object-fit:cover;
     border:1px solid var(--border);display:none;}
-  .upload-progress{font-size:11.5px;color:var(--plum-faint);margin-top:6px;display:none;}
   .modal-actions{display:flex;justify-content:space-between;align-items:center;margin-top:22px;
     padding-top:16px;border-top:1px solid var(--border);}
   .modal-actions .right{display:flex;gap:8px;}
@@ -394,7 +393,7 @@
     </div>
 
     <div class="field">
-      <label>Imagen (URL)</label>
+      <label>Imagen (URL o Link de Drive)</label>
       <input type="url" id="f_imagenUrl" placeholder="https://..." oninput="previewImage()">
       <img id="imgPreview" class="img-preview">
     </div>
@@ -422,13 +421,9 @@ import {
   getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot,
   getDoc, serverTimestamp, arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
-/* Nota: no usamos Firebase Storage (subida de archivos) porque desde 2026
-   Google exige el plan de pago Blaze incluso para el nivel gratuito de Storage.
-   Las imágenes se manejan solo por URL, sin costo ni tarjeta. */
 
 /* =====================================================================
-   1) PEGÁ ACÁ LA CONFIGURACIÓN DE TU PROYECTO FIREBASE
-   La conseguís en: Firebase Console > Configuración del proyecto > Tus apps > SDK config
+   CONFIGURACIÓN FIREBASE
    ===================================================================== */
 const firebaseConfig = {
   apiKey: "AIzaSyBHPh24Wp7rV7iYcFMqkz-GmxRAde-5e3k",
@@ -461,6 +456,16 @@ const OBJETIVOS = [
 ];
 const DOW = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+/* ================= HELPERS DRIVE ================= */
+function convertDriveUrl(url) {
+  if (!url) return '';
+  const match = url.match(/(?:file\/d\/|id=)([\w-]+)/);
+  if (match && match[1]) {
+    return `https://lh3.googleusercontent.com/d/${match[1]}`;
+  }
+  return url;
+}
 
 /* ================= STATE ================= */
 let state = {
@@ -511,7 +516,6 @@ onAuthStateChanged(auth, async (user)=>{
   try{
     roleDoc = await getDoc(doc(db, 'roles', user.email));
   }catch(e){
-    // Firestore rules may block read until a role doc exists — treat as no access
     roleDoc = null;
   }
 
@@ -887,7 +891,8 @@ function closeModal(){
 window.closeModal = closeModal;
 
 function previewImage(){
-  const url = document.getElementById('f_imagenUrl').value.trim();
+  const rawUrl = document.getElementById('f_imagenUrl').value.trim();
+  const url = convertDriveUrl(rawUrl);
   const img = document.getElementById('imgPreview');
   if(url){
     img.src = url;
@@ -909,7 +914,8 @@ async function savePost(){
   const idea = document.getElementById('f_idea').value.trim();
   const descripcion = document.getElementById('f_copy').value.trim();
   const categorias = document.getElementById('f_categorias').value.split(',').map(s=>s.trim()).filter(Boolean);
-  const imagen = document.getElementById('f_imagenUrl').value.trim();
+  const rawImagen = document.getElementById('f_imagenUrl').value.trim();
+  const imagen = convertDriveUrl(rawImagen);
 
   if(!titulo){ showToast('Poné al menos un título.'); return; }
   if(!fecha){ showToast('Elegí una fecha de publicación.'); return; }
