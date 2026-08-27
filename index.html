@@ -111,6 +111,12 @@
     color:var(--accent);font-weight:600;margin:0 0 4px;
   }
   .top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .export-control{display:flex;align-items:center;gap:7px;background:var(--glass-bg);border:1px solid var(--glass-border);
+    border-radius:999px;padding:4px 12px 4px 4px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
+  .export-control .btn{padding:8px 14px;}
+  .export-check{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--ink-soft);
+    white-space:nowrap;cursor:pointer;}
+  .export-check input{accent-color:var(--btn-bg);cursor:pointer;}
   .user-pill{
     display:flex;align-items:center;gap:8px;background:var(--glass-bg);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -262,7 +268,6 @@
   .cats{display:flex;gap:4px;flex-wrap:wrap;}
   .cat-chip{background:var(--gold-light);color:#8A6A2A;font-size:10.5px;font-weight:600;
     padding:2px 8px;border-radius:999px;border:1px solid rgba(201,162,75,.35);}
-  body.dark-mode .cat-chip{color:var(--gold);}
 
   /* ---------- Feed view (left column, IG-style) ---------- */
   .feed-grid{
@@ -345,7 +350,8 @@
   .post-card .pc-title{font-size:10.5px;font-weight:600;line-height:1.25;
     overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
   .post-card .pc-bottom{display:flex;align-items:center;justify-content:space-between;gap:5px;font-size:9px;}
-  .post-card .pc-persona{font-weight:600;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;}
+  .post-card .pc-persona{font-weight:600;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:1;display:inline-flex;align-items:center;gap:3px;}
+  .pc-dot-mini{width:6px;height:6px;border-radius:50%;flex-shrink:0;display:inline-block;}
   .post-card .mini-tag{font-size:8px;padding:1px 6px;flex-shrink:0;}
 
   .cal-post.post-card{margin-bottom:4px;cursor:grab;}
@@ -583,7 +589,12 @@
       <button class="signout" id="btnSignOut">Cerrar sesión</button>
       <button class="btn btn-ghost btn-small hidden" id="btnManage" onclick="openManageModal()">Gestionar</button>
       <button class="btn btn-ghost btn-small hidden" id="btnTeam" onclick="openTeamModal()">Personas</button>
-      <button class="btn btn-ghost btn-small" id="btnExport" onclick="exportCSV()">Exportar CSV</button>
+      <div class="export-control">
+        <button class="btn btn-ghost btn-small" id="btnExport" onclick="exportCSV()">Exportar CSV</button>
+        <label class="export-check" title="Si está tildado, exporta solo los posteos que coinciden con los filtros activos de arriba">
+          <input type="checkbox" id="exportOnlyFiltered" checked> Solo filtrados
+        </label>
+      </div>
       <button class="btn btn-ghost btn-small hidden" id="btnImport" onclick="document.getElementById('importFileInput').click()">Importar CSV</button>
       <input type="file" id="importFileInput" accept=".csv,text/csv" class="hidden" onchange="handleImportFile(event)">
       <button class="btn btn-primary" id="btnNuevo" onclick="openModal()">+ Nuevo posteo</button>
@@ -718,8 +729,11 @@
     </div>
 
     <div class="field">
-      <label>Categorías (separadas por coma)</label>
-      <input type="text" id="f_categorias" placeholder="Ej: branding, astrología, tips">
+      <label>Categorías</label>
+      <div class="cat-select-row">
+        <div class="toggle-chips" id="f_categorias_chips"></div>
+        <button type="button" title="Gestionar categorías" onclick="openManageModal('categorias')">+</button>
+      </div>
     </div>
 
     <div class="field">
@@ -774,15 +788,19 @@
 
 <div class="modal-backdrop" id="manageModalBackdrop">
   <div class="modal modal-wide">
-    <h2>Gestionar tipos, estados y objetivos</h2>
+    <h2>Gestionar tipos, estados, objetivos, categorías y personas</h2>
     <div class="tabs" style="margin-bottom:16px;">
       <div class="tab active" data-mtab="tipos" onclick="switchManageTab('tipos')">Tipos</div>
       <div class="tab" data-mtab="estados" onclick="switchManageTab('estados')">Estados</div>
       <div class="tab" data-mtab="objetivos" onclick="switchManageTab('objetivos')">Objetivos</div>
+      <div class="tab" data-mtab="categorias" onclick="switchManageTab('categorias')">Categorías</div>
+      <div class="tab" data-mtab="personas" onclick="switchManageTab('personas')">Personas</div>
     </div>
     <div id="manageTipos"></div>
     <div id="manageEstados" style="display:none;"></div>
     <div id="manageObjetivos" style="display:none;"></div>
+    <div id="manageCategorias" style="display:none;"></div>
+    <div id="managePersonas" style="display:none;"></div>
     <div class="modal-actions">
       <div class="left"></div>
       <div class="right"><button class="btn btn-ghost" onclick="closeManageModal()">Cerrar</button></div>
@@ -817,7 +835,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
 import {
   getFirestore, collection, doc, setDoc, updateDoc, deleteDoc, onSnapshot,
-  getDoc, serverTimestamp, arrayUnion, writeBatch
+  getDoc, serverTimestamp, writeBatch
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 /* =====================================================================
@@ -854,6 +872,8 @@ const DEFAULT_OBJETIVOS = [
   'Venta','Adquisición de audiencia','Interacción','Awareness / Alcance',
   'Fidelización','Tráfico al sitio','Otro'
 ];
+const DEFAULT_PERSONAS = [{id:'Sofia', color:'#6E58A8'}];
+const DEFAULT_CATEGORIAS = [];
 /* Estados: cada uno tiene un fondo pastel suave (bg) y un borde algo más
    marcado del mismo tono (border). Pendiente = gris, En curso = azul,
    Revisar = amarillo, Aprobado = verde, Cancelado = rojo, Programado = morado. */
@@ -935,7 +955,8 @@ function estadoStyle(es){
 /* ================= STATE ================= */
 let state = {
   posts: [],
-  people: ['Sofia'],
+  personas: [...DEFAULT_PERSONAS],
+  categorias: [...DEFAULT_CATEGORIAS],
   team: [],
   estados: [...DEFAULT_ESTADOS],
   tipos: [...DEFAULT_TIPOS],
@@ -957,7 +978,8 @@ let state = {
   filterCategorias: new Set(),
   filterSearch: '',
   dragPostId: null,
-  darkMode: false
+  darkMode: false,
+  modalCategorias: new Set()
 };
 
 function tipoColor(t){
@@ -968,13 +990,23 @@ function estadoInfo(e){
   return state.estados.find(x=>x.id===e) || {id:e||'Pendiente', bg:'#f7f4f3', border:'#b3b4b4'};
 }
 function isEditor(){ return state.role === 'editor'; }
+/* Persona: color propio (para el puntito junto al nombre); si viene de una
+   cuenta de equipo que todavía no tiene color asignado, usa un gris neutro. */
+function personaInfo(name){
+  return state.personas.find(x=>x.id===name) || {id:name||'', color:'#A39B92'};
+}
 function personaOptions(){
-  const names = new Set(state.people);
+  const names = new Set(state.personas.map(p=>p.id));
   state.team.forEach(t=>{ if(t.nombre) names.add(t.nombre); });
   return Array.from(names).sort((a,b)=>a.localeCompare(b));
 }
+/* Categoría: color propio; si es una categoría vieja (texto libre) que no
+   está en la lista gestionada, usa un color neutro por defecto. */
+function categoriaInfo(name){
+  return state.categorias.find(x=>x.id===name) || {id:name||'', color:'#A39B92'};
+}
 function categoriaOptions(){
-  const cats = new Set();
+  const cats = new Set(state.categorias.map(c=>c.id));
   state.posts.forEach(p=>{ (p.categorias||[]).forEach(c=>cats.add(c)); });
   return Array.from(cats).sort((a,b)=>a.localeCompare(b));
 }
@@ -1017,12 +1049,13 @@ document.getElementById('btnGoogleLogin').onclick = ()=>{
 document.getElementById('btnSignOut').onclick = ()=> signOut(auth);
 document.getElementById('btnSignOutNoAccess').onclick = ()=> signOut(auth);
 
-let unsubPosts = null, unsubPeople = null, unsubEstados = null, unsubTipos = null, unsubObjetivos = null, unsubTeam = null;
+let unsubPosts = null, unsubPersonas = null, unsubCategorias = null, unsubEstados = null, unsubTipos = null, unsubObjetivos = null, unsubTeam = null;
 
 onAuthStateChanged(auth, async (user)=>{
   show('screenLogin', false); show('screenNoAccess', false); show('screenApp', false);
   if(unsubPosts) unsubPosts();
-  if(unsubPeople) unsubPeople();
+  if(unsubPersonas) unsubPersonas();
+  if(unsubCategorias) unsubCategorias();
   if(unsubEstados) unsubEstados();
   if(unsubTipos) unsubTipos();
   if(unsubObjetivos) unsubObjetivos();
@@ -1066,10 +1099,25 @@ onAuthStateChanged(auth, async (user)=>{
     renderAll();
   }, err=>{ console.error(err); showToast('No se pudieron cargar los posteos.'); });
 
-  unsubPeople = onSnapshot(doc(db,'people','list'), snap=>{
-    state.people = (snap.exists() && snap.data().names && snap.data().names.length)
-      ? snap.data().names : ['Sofia'];
+  unsubPersonas = onSnapshot(doc(db,'meta','personas'), snap=>{
+    if(snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length){
+      state.personas = snap.data().items;
+    } else if(snap.exists() && Array.isArray(snap.data().names) && snap.data().names.length){
+      // compatibilidad con el formato anterior (solo nombres, sin color)
+      state.personas = snap.data().names.map((n,i)=>({id:n, color: COLOR_PALETTE[i % COLOR_PALETTE.length].border}));
+    } else {
+      state.personas = [...DEFAULT_PERSONAS];
+    }
     populateSelects();
+    if(document.getElementById('manageModalBackdrop').classList.contains('open')) renderManage();
+    renderAll();
+  }, err=>{ console.error(err); });
+
+  unsubCategorias = onSnapshot(doc(db,'meta','categorias'), snap=>{
+    state.categorias = (snap.exists() && Array.isArray(snap.data().items))
+      ? snap.data().items : [...DEFAULT_CATEGORIAS];
+    populateSelects();
+    if(document.getElementById('manageModalBackdrop').classList.contains('open')) renderManage();
     renderAll();
   }, err=>{ console.error(err); });
 
@@ -1109,23 +1157,16 @@ onAuthStateChanged(auth, async (user)=>{
 
 function show(id, on){ document.getElementById(id).classList.toggle('hidden', !on); }
 
-/* ================= PEOPLE (nombres sueltos, sin cuenta) ================= */
-async function addPersonaPrompt(){
-  const name = prompt('Nombre de la nueva persona:');
-  if(!name) return;
-  const trimmed = name.trim();
-  if(!trimmed) return;
-  try{
-    await setDoc(doc(db,'people','list'), { names: arrayUnion(trimmed) }, { merge:true });
-  }catch(e){ showToast('No se pudo agregar. ¿Tenés permisos de editor?'); return; }
-  document.getElementById('f_persona').value = trimmed;
+/* ================= PERSONAS (nombres sueltos, sin cuenta) ================= */
+function addPersonaPrompt(){
+  openManageModal('personas');
 }
 window.addPersonaPrompt = addPersonaPrompt;
 
-/* ================= GESTIONAR TIPOS / ESTADOS / OBJETIVOS ================= */
-function openManageModal(){
+/* ================= GESTIONAR TIPOS / ESTADOS / OBJETIVOS / CATEGORÍAS / PERSONAS ================= */
+function openManageModal(tab){
   if(!isEditor()) return;
-  switchManageTab(state.manageTab || 'tipos');
+  switchManageTab(tab || state.manageTab || 'tipos');
   document.getElementById('manageModalBackdrop').classList.add('open');
 }
 window.openManageModal = openManageModal;
@@ -1136,7 +1177,7 @@ window.closeManageModal = closeManageModal;
 function switchManageTab(tab){
   state.manageTab = tab;
   document.querySelectorAll('#manageModalBackdrop .tab').forEach(t=>t.classList.toggle('active', t.dataset.mtab===tab));
-  ['tipos','estados','objetivos'].forEach(x=>{
+  ['tipos','estados','objetivos','categorias','personas'].forEach(x=>{
     document.getElementById('manage'+x.charAt(0).toUpperCase()+x.slice(1)).style.display = (x===tab)?'block':'none';
   });
   renderManage();
@@ -1145,7 +1186,9 @@ window.switchManageTab = switchManageTab;
 function renderManage(){
   if(state.manageTab==='tipos') renderManageTipos();
   else if(state.manageTab==='estados') renderManageEstados();
-  else renderManageObjetivos();
+  else if(state.manageTab==='objetivos') renderManageObjetivos();
+  else if(state.manageTab==='categorias') renderManageCategorias();
+  else renderManagePersonas();
 }
 
 /* ---- Tipos ---- */
@@ -1366,6 +1409,159 @@ async function addObjetivo(){
 }
 window.addObjetivo = addObjetivo;
 
+/* ---- Categorías ---- */
+function renderManageCategorias(){
+  const el = document.getElementById('manageCategorias');
+  const rows = state.categorias.map((c,i)=>`
+    <div class="manage-row">
+      <input type="color" value="${c.color}" onchange="updateCategoriaField(${i},this.value)">
+      <input type="text" value="${escapeAttr(c.id)}" onblur="renameCategoria(${i},this.value)" onkeydown="if(event.key==='Enter')this.blur();">
+      <button class="icon-btn" title="Eliminar categoría" onclick="deleteCategoria(${i})">✕</button>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="manage-list">${rows || '<div class="manage-empty">No hay categorías cargadas.</div>'}</div>
+    <div class="manage-add-row">
+      <input type="color" id="newCategoriaColor" value="#6E58A8">
+      <input type="text" id="newCategoriaNombre" placeholder="Nueva categoría…">
+      <button class="btn btn-primary btn-small" onclick="addCategoria()">+ Agregar</button>
+    </div>
+    ${paletteSwatchesHtml('setNewCategoriaColor')}`;
+}
+function setNewCategoriaColor(bg, border){
+  const el = document.getElementById('newCategoriaColor');
+  if(el) el.value = border;
+}
+window.setNewCategoriaColor = setNewCategoriaColor;
+async function updateCategoriaField(i, color){
+  const arr = [...state.categorias];
+  if(!arr[i]) return;
+  arr[i] = {...arr[i], color};
+  try{ await persistList('categorias', arr); }catch(e){ showToast('No se pudo actualizar la categoría.'); }
+}
+window.updateCategoriaField = updateCategoriaField;
+async function renameCategoria(i, newName){
+  newName = newName.trim();
+  const old = state.categorias[i];
+  if(!old || !newName || newName===old.id) { renderManageCategorias(); return; }
+  if(state.categorias.some((c,idx)=>idx!==i && c.id.toLowerCase()===newName.toLowerCase())){
+    showToast('Ya existe una categoría con ese nombre.'); renderManageCategorias(); return;
+  }
+  const arr = [...state.categorias];
+  arr[i] = {...arr[i], id:newName};
+  try{
+    await persistList('categorias', arr);
+    await cascadeRenameInArray('categorias', old.id, newName);
+    showToast('Categoría actualizada ✓');
+  }catch(e){ showToast('No se pudo renombrar la categoría.'); }
+}
+window.renameCategoria = renameCategoria;
+async function deleteCategoria(i){
+  const c = state.categorias[i];
+  if(!c) return;
+  const enUso = state.posts.some(p=>(p.categorias||[]).includes(c.id));
+  const msg = enUso
+    ? `"${c.id}" está asignada a algunos posteos. Se quitará de la lista y también de esos posteos. ¿Continuar?`
+    : `¿Eliminar la categoría "${c.id}"?`;
+  if(!confirm(msg)) return;
+  const arr = state.categorias.filter((x,idx)=>idx!==i);
+  try{
+    await persistList('categorias', arr);
+    await cascadeRemoveFromArray('categorias', c.id);
+    showToast('Categoría eliminada');
+  }catch(e){ showToast('No se pudo eliminar la categoría.'); }
+}
+window.deleteCategoria = deleteCategoria;
+async function addCategoria(){
+  const nombre = document.getElementById('newCategoriaNombre').value.trim();
+  const color = document.getElementById('newCategoriaColor').value;
+  if(!nombre){ showToast('Poné un nombre para la categoría.'); return; }
+  if(state.categorias.some(c=>c.id.toLowerCase()===nombre.toLowerCase())){
+    showToast('Ya existe una categoría con ese nombre.'); return;
+  }
+  try{
+    await persistList('categorias', [...state.categorias, {id:nombre, color}]);
+    document.getElementById('newCategoriaNombre').value = '';
+    showToast('Categoría agregada ✓');
+  }catch(e){ showToast('No se pudo agregar la categoría.'); }
+}
+window.addCategoria = addCategoria;
+
+/* ---- Personas ---- */
+function renderManagePersonas(){
+  const el = document.getElementById('managePersonas');
+  const rows = state.personas.map((p,i)=>`
+    <div class="manage-row">
+      <input type="color" value="${p.color}" onchange="updatePersonaField(${i},this.value)">
+      <input type="text" value="${escapeAttr(p.id)}" onblur="renamePersona(${i},this.value)" onkeydown="if(event.key==='Enter')this.blur();">
+      <button class="icon-btn" title="Eliminar persona" onclick="deletePersona(${i})">✕</button>
+    </div>`).join('');
+  el.innerHTML = `
+    <div class="manage-list">${rows || '<div class="manage-empty">No hay personas cargadas.</div>'}</div>
+    <div class="manage-add-row">
+      <input type="color" id="newPersonaColor" value="#6E58A8">
+      <input type="text" id="newPersonaNombre" placeholder="Nueva persona…">
+      <button class="btn btn-primary btn-small" onclick="addPersona()">+ Agregar</button>
+    </div>
+    ${paletteSwatchesHtml('setNewPersonaColor')}
+    <p class="team-help" style="margin-top:14px;">Esto es para personas sin cuenta de Google (solo aparecen como
+      "Persona encargada" en los posteos). Para dar acceso con cuenta y rol, usá el botón "Personas con acceso".</p>`;
+}
+function setNewPersonaColor(bg, border){
+  const el = document.getElementById('newPersonaColor');
+  if(el) el.value = border;
+}
+window.setNewPersonaColor = setNewPersonaColor;
+async function updatePersonaField(i, color){
+  const arr = [...state.personas];
+  if(!arr[i]) return;
+  arr[i] = {...arr[i], color};
+  try{ await persistList('personas', arr); }catch(e){ showToast('No se pudo actualizar la persona.'); }
+}
+window.updatePersonaField = updatePersonaField;
+async function renamePersona(i, newName){
+  newName = newName.trim();
+  const old = state.personas[i];
+  if(!old || !newName || newName===old.id) { renderManagePersonas(); return; }
+  if(state.personas.some((p,idx)=>idx!==i && p.id.toLowerCase()===newName.toLowerCase())){
+    showToast('Ya existe una persona con ese nombre.'); renderManagePersonas(); return;
+  }
+  const arr = [...state.personas];
+  arr[i] = {...arr[i], id:newName};
+  try{
+    await persistList('personas', arr);
+    await cascadeRename('persona', old.id, newName);
+    showToast('Persona actualizada ✓');
+  }catch(e){ showToast('No se pudo renombrar la persona.'); }
+}
+window.renamePersona = renamePersona;
+async function deletePersona(i){
+  const p = state.personas[i];
+  if(!p) return;
+  const enUso = state.posts.some(x=>x.persona===p.id);
+  const msg = enUso
+    ? `"${p.id}" tiene posteos asignados. Se eliminará de la lista pero esos posteos conservarán ese nombre. ¿Continuar?`
+    : `¿Eliminar a "${p.id}"?`;
+  if(!confirm(msg)) return;
+  const arr = state.personas.filter((x,idx)=>idx!==i);
+  try{ await persistList('personas', arr); showToast('Persona eliminada'); }
+  catch(e){ showToast('No se pudo eliminar la persona.'); }
+}
+window.deletePersona = deletePersona;
+async function addPersona(){
+  const nombre = document.getElementById('newPersonaNombre').value.trim();
+  const color = document.getElementById('newPersonaColor').value;
+  if(!nombre){ showToast('Poné un nombre para la persona.'); return; }
+  if(state.personas.some(p=>p.id.toLowerCase()===nombre.toLowerCase())){
+    showToast('Ya existe una persona con ese nombre.'); return;
+  }
+  try{
+    await persistList('personas', [...state.personas, {id:nombre, color}]);
+    document.getElementById('newPersonaNombre').value = '';
+    showToast('Persona agregada ✓');
+  }catch(e){ showToast('No se pudo agregar la persona.'); }
+}
+window.addPersona = addPersona;
+
 /* ================= EQUIPO / PERSONAS CON CUENTA ================= */
 function openTeamModal(){
   if(!isEditor()) return;
@@ -1473,6 +1669,25 @@ async function cascadeRename(field, oldVal, newVal){
     catch(e){ /* ignorar errores individuales */ }
   }
 }
+/* Igual que cascadeRename pero para campos que son un array (categorias). */
+async function cascadeRenameInArray(field, oldVal, newVal){
+  if(oldVal === newVal) return;
+  const affected = state.posts.filter(p=>(p[field]||[]).includes(oldVal));
+  for(const p of affected){
+    const arr = (p[field]||[]).map(v=> v===oldVal ? newVal : v);
+    try{ await updateDoc(doc(db,'posts',p.id), {[field]: arr, updatedAt: serverTimestamp()}); }
+    catch(e){ /* ignorar errores individuales */ }
+  }
+}
+/* Quita un valor de un campo array en todos los posteos que lo tengan (al eliminar una categoría). */
+async function cascadeRemoveFromArray(field, val){
+  const affected = state.posts.filter(p=>(p[field]||[]).includes(val));
+  for(const p of affected){
+    const arr = (p[field]||[]).filter(v=>v!==val);
+    try{ await updateDoc(doc(db,'posts',p.id), {[field]: arr, updatedAt: serverTimestamp()}); }
+    catch(e){ /* ignorar errores individuales */ }
+  }
+}
 
 /* ================= FILTERS ================= */
 function toggleFiltersPanel(){
@@ -1501,14 +1716,16 @@ function refreshEstadoChips(){
 }
 function refreshPersonaChips(){
   const el = document.getElementById('filterPersonasChips');
-  el.innerHTML = personaOptions().map(p=>`<div class="toggle-chip" data-val="${escapeAttr(p)}" onclick="toggleFilter('personas','${escapeAttr(p)}')">${escapeHtml(p)}</div>`).join('');
+  el.innerHTML = personaOptions().map(p=>`<div class="toggle-chip" data-val="${escapeAttr(p)}" onclick="toggleFilter('personas','${escapeAttr(p)}')">
+    <span class="dot" style="background:${personaInfo(p).color}"></span>${escapeHtml(p)}</div>`).join('');
   syncFilterChipUI();
 }
 function refreshCategoriaChips(){
   const el = document.getElementById('filterCategoriasChips');
   const cats = categoriaOptions();
   el.innerHTML = cats.length
-    ? cats.map(c=>`<div class="toggle-chip" data-val="${escapeAttr(c)}" onclick="toggleFilter('categorias','${escapeAttr(c)}')">${escapeHtml(c)}</div>`).join('')
+    ? cats.map(c=>`<div class="toggle-chip" data-val="${escapeAttr(c)}" onclick="toggleFilter('categorias','${escapeAttr(c)}')">
+      <span class="dot" style="background:${categoriaInfo(c).color}"></span>${escapeHtml(c)}</div>`).join('')
     : `<span style="font-size:11.5px;color:var(--ink-faint);">Sin categorías todavía</span>`;
   syncFilterChipUI();
 }
@@ -1633,7 +1850,7 @@ function renderStats(){
   html += `<div class="stat-card glass"><h3>Por estado</h3><div class="chip-row">${estadoChips || '<span class="chip">Sin datos</span>'}</div></div>`;
 
   let personaChips = Object.keys(byPersona).map(name=>
-    `<span class="chip"><span class="dot" style="background:var(--accent)"></span>${escapeHtml(name)} · ${byPersona[name]}</span>`).join('');
+    `<span class="chip"><span class="dot" style="background:${personaInfo(name).color}"></span>${escapeHtml(name)} · ${byPersona[name]}</span>`).join('');
   html += `<div class="stat-card glass"><h3>Por persona</h3><div class="chip-row">${personaChips || '<span class="chip">Sin datos</span>'}</div></div>`;
 
   let objChips = Object.keys(byObjetivo).map(o=>
@@ -1699,7 +1916,7 @@ function renderPostCard(p, {cardClass, topBar, dragAttrs}){
       <div class="pc-title">${escapeHtml(p.titulo || p.tipo)}</div>
       <div class="pc-bottom">
         ${p.objetivo? `<span class="mini-tag" style="background:${rgba(est.border,.16)};color:${sb.text};border-color:${rgba(est.border,.5)};">${escapeHtml(p.objetivo)}</span>` : '<span></span>'}
-        <span class="pc-persona">${escapeHtml(p.persona||'')}</span>
+        <span class="pc-persona">${p.persona? `<span class="pc-dot-mini" style="background:${personaInfo(p.persona).color};"></span>` : ''}${escapeHtml(p.persona||'')}</span>
       </div>
     </div>
   </div>`;
@@ -1839,7 +2056,10 @@ function renderLista(){
   if(state.posts.length===0){ el.innerHTML = emptyState(); return; }
 
   const rows = posts.map(p=>{
-    const cats = (p.categorias||[]).map(c=>`<span class="cat-chip">${escapeHtml(c)}</span>`).join('');
+    const cats = (p.categorias||[]).map(c=>{
+      const ci = categoriaInfo(c);
+      return `<span class="cat-chip" style="background:${rgba(ci.color,.14)};color:${darken(ci.color,.25)};border-color:${rgba(ci.color,.5)};">${escapeHtml(c)}</span>`;
+    }).join('');
     const est = estadoInfo(p.estado);
     const sbEst = estadoStyle(est);
     const tc = tipoColor(p.tipo);
@@ -1858,7 +2078,7 @@ function renderLista(){
       <td class="editable-cell" onclick="handleCellClick(event,'${p.id}','tipo')"><span class="tipo-badge" style="background:${rgba(tc,.12)};border:1px solid ${darken(tc,.15)};"><span class="dot" style="background:${tc};"></span>${escapeHtml(p.tipo)}</span></td>
       <td class="editable-cell" onclick="handleCellClick(event,'${p.id}','estado')"><span class="estado-badge" style="background:${sbEst.bg};color:${sbEst.text};border:1px solid ${sbEst.border};">${escapeHtml(est.id)}</span></td>
       <td class="editable-cell" onclick="handleCellClick(event,'${p.id}','objetivo')">${escapeHtml(p.objetivo||'')}</td>
-      <td class="editable-cell" onclick="handleCellClick(event,'${p.id}','persona')">${escapeHtml(p.persona||'')}</td>
+      <td class="editable-cell" onclick="handleCellClick(event,'${p.id}','persona')">${p.persona? `<span class="pc-dot-mini" style="background:${personaInfo(p.persona).color};margin-right:5px;"></span>` : ''}${escapeHtml(p.persona||'')}</td>
       <td><div class="cats">${cats}</div></td>
       <td>${actions}</td>
     </tr>`;
@@ -2017,11 +2237,38 @@ function emptyState(){
 function populateSelects(){
   document.getElementById('f_tipo').innerHTML = state.tipos.map(t=>`<option value="${escapeAttr(t.id)}" style="background:${t.color};color:${contrastColor(t.color)};">${escapeHtml(t.id)}</option>`).join('');
   document.getElementById('f_objetivo').innerHTML = state.objetivos.map(o=>`<option value="${escapeAttr(o)}">${escapeHtml(o)}</option>`).join('');
-  document.getElementById('f_persona').innerHTML = personaOptions().map(p=>`<option value="${escapeAttr(p)}">${escapeHtml(p)}</option>`).join('');
+  document.getElementById('f_persona').innerHTML = personaOptions().map(p=>{
+    const col = personaInfo(p).color;
+    return `<option value="${escapeAttr(p)}" style="background:${rgba(col,.18)};color:${darken(col,.2)};">${escapeHtml(p)}</option>`;
+  }).join('');
   document.getElementById('f_estado').innerHTML = state.estados.map(e=>{
-    return `<option value="${escapeAttr(e.id)}" style="background:${lighten(e.color,.82)};color:${darken(e.color,.18)};">${escapeHtml(e.id)}</option>`;
+    return `<option value="${escapeAttr(e.id)}" style="background:${e.bg};color:${darken(e.border,.35)};">${escapeHtml(e.id)}</option>`;
   }).join('');
 }
+function renderCategoriaChipsModal(){
+  const el = document.getElementById('f_categorias_chips');
+  if(!el) return;
+  const readOnly = !isEditor();
+  const opts = categoriaOptions();
+  if(opts.length===0){
+    el.innerHTML = `<span style="font-size:11.5px;color:var(--ink-faint);">Todavía no hay categorías. Usá el botón "+" para crear una.</span>`;
+    return;
+  }
+  el.innerHTML = opts.map(c=>{
+    const ci = categoriaInfo(c);
+    const active = state.modalCategorias.has(c);
+    const style = active
+      ? `background:${ci.color};color:${contrastColor(ci.color)};border-color:${ci.color};`
+      : `border-color:${rgba(ci.color,.5)};color:${darken(ci.color,.15)};`;
+    return `<div class="toggle-chip${active?' active':''}" style="${style}" ${readOnly?'':`onclick="toggleModalCategoria('${escapeAttr(c)}')"`}>${escapeHtml(c)}</div>`;
+  }).join('');
+}
+function toggleModalCategoria(c){
+  if(state.modalCategorias.has(c)) state.modalCategorias.delete(c);
+  else state.modalCategorias.add(c);
+  renderCategoriaChipsModal();
+}
+window.toggleModalCategoria = toggleModalCategoria;
 
 function openModal(id, prefillDate, prefillTipo){
   if(!isEditor() && !id) return;
@@ -2043,13 +2290,14 @@ function openModal(id, prefillDate, prefillTipo){
     document.getElementById('f_persona').value = p.persona||personaOptions()[0]||'';
     document.getElementById('f_idea').value = p.idea||'';
     document.getElementById('f_copy').value = p.descripcion||'';
-    document.getElementById('f_categorias').value = (p.categorias||[]).join(', ');
+    state.modalCategorias = new Set(p.categorias||[]);
     document.getElementById('f_imagenUrl').value = p.imagen||'';
     document.getElementById('btnDelete').style.display = readOnly ? 'none' : 'inline-block';
   }else{
     document.getElementById('modalTitle').textContent = 'Nuevo posteo';
     document.getElementById('modalMeta').textContent = '';
-    ['f_titulo','f_fecha','f_idea','f_copy','f_categorias','f_imagenUrl'].forEach(fid=>document.getElementById(fid).value='');
+    ['f_titulo','f_fecha','f_idea','f_copy','f_imagenUrl'].forEach(fid=>document.getElementById(fid).value='');
+    state.modalCategorias = new Set();
     document.getElementById('f_tipo').value = prefillTipo || (state.tipos[0]&&state.tipos[0].id)||'';
     document.getElementById('f_estado').value = state.estados[0].id;
     document.getElementById('f_objetivo').value = state.objetivos[0]||'';
@@ -2057,6 +2305,7 @@ function openModal(id, prefillDate, prefillTipo){
     if(prefillDate) document.getElementById('f_fecha').value = prefillDate;
     document.getElementById('btnDelete').style.display = 'none';
   }
+  renderCategoriaChipsModal();
   previewImage();
 
   document.querySelectorAll('#modalBackdrop input, #modalBackdrop select, #modalBackdrop textarea').forEach(elm=>{
@@ -2098,7 +2347,7 @@ async function savePost(){
   const persona = document.getElementById('f_persona').value;
   const idea = document.getElementById('f_idea').value.trim();
   const descripcion = document.getElementById('f_copy').value.trim();
-  const categorias = document.getElementById('f_categorias').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const categorias = Array.from(state.modalCategorias);
   const rawImagen = document.getElementById('f_imagenUrl').value.trim();
   const imagen = convertDriveUrl(rawImagen);
 
@@ -2161,9 +2410,11 @@ function csvEscape(val){
   return s;
 }
 function exportCSV(){
+  const onlyFiltered = document.getElementById('exportOnlyFiltered')?.checked;
+  const source = onlyFiltered ? filteredPosts() : state.posts;
   const headers = ['Titulo','Tipo','Estado','Objetivo','Fecha','Persona','Idea','Descripcion','Categorias','Imagen'];
   const lines = [headers.join(';')];
-  const posts = [...state.posts].sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
+  const posts = [...source].sort((a,b)=> new Date(a.fecha) - new Date(b.fecha));
   posts.forEach(p=>{
     lines.push([
       csvEscape(p.titulo), csvEscape(p.tipo), csvEscape(p.estado), csvEscape(p.objetivo),
@@ -2171,6 +2422,7 @@ function exportCSV(){
       csvEscape((p.categorias||[]).join(', ')), csvEscape(p.imagen)
     ].join(';'));
   });
+  if(posts.length===0){ showToast('No hay posteos para exportar con esos filtros.'); return; }
   const csvContent = '\uFEFF' + lines.join('\r\n');
   const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
@@ -2181,7 +2433,7 @@ function exportCSV(){
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('CSV exportado ✓');
+  showToast(`${posts.length} posteo(s) exportado(s)${onlyFiltered ? ' (según filtros)' : ''} ✓`);
 }
 window.exportCSV = exportCSV;
 
