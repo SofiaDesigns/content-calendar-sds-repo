@@ -183,22 +183,17 @@
     box-shadow:var(--shadow);
   }
 
-  /* ---------- Quickbar (fecha rápida + botón filtros) ---------- */
-  .quickbar{
-    display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;
-    border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;
+  /* ---------- Toolbar row: contadores a la izquierda, fecha + filtros a la derecha ---------- */
+  .toolbar-row{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+    margin-bottom:6px;
   }
-  .quickbar-dates{display:flex;gap:8px;align-items:flex-end;}
-  .quickbar .fg-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;
-    font-weight:600;color:var(--ink-faint);margin-bottom:4px;}
-  .quickbar input[type=date]{
-    border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;background:var(--cream-2);
-    color:var(--ink);font-family:inherit;
-  }
-  .active-filter-chips{display:flex;flex-wrap:wrap;gap:6px;flex:1;}
+  .toolbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;}
+  .active-filter-chips-row{display:flex;justify-content:flex-end;margin-bottom:16px;}
+  .active-filter-chips{display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;}
   .active-filter-chip{
-    display:inline-flex;align-items:center;gap:5px;background:var(--glass-bg-strong);border:1px solid var(--glass-border);
-    border-radius:999px;padding:3px 10px;font-size:11px;font-weight:600;color:var(--ink-soft);
+    display:inline-flex;align-items:center;gap:4px;background:var(--glass-bg-strong);border:1px solid var(--glass-border);
+    border-radius:999px;padding:2px 8px;font-size:10px;font-weight:600;color:var(--ink-soft);
   }
   .filter-group{display:flex;flex-direction:column;gap:6px;margin-bottom:18px;}
   .filter-group .fg-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;
@@ -214,6 +209,29 @@
   }
   .toggle-chip.active{background:var(--btn-bg);color:var(--btn-text);border-color:var(--btn-bg);}
   .clear-link{font-size:12px;color:var(--ink-faint);cursor:pointer;text-decoration:underline;display:inline-block;margin-top:4px;}
+
+  /* ---------- Selector de rango de fechas (estilo Looker Studio) ---------- */
+  .daterange-wrap{position:relative;}
+  #dateRangeBtn{display:inline-flex;align-items:center;gap:6px;}
+  .daterange-popover{
+    display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:55;width:280px;
+    background:var(--cream-2);border:1px solid var(--border);border-radius:14px;
+    box-shadow:0 12px 34px rgba(0,0,0,.18);padding:14px;
+  }
+  .daterange-popover.open{display:block;}
+  .drp-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+  .drp-presets button{
+    border:1px solid var(--border);background:var(--cream);border-radius:999px;padding:5px 11px;
+    font-size:11.5px;font-weight:600;color:var(--ink-soft);cursor:pointer;font-family:inherit;
+  }
+  .drp-presets button:hover{border-color:var(--accent);color:var(--ink);}
+  .drp-custom{display:flex;gap:10px;}
+  .drp-custom .fg-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    font-weight:600;color:var(--ink-faint);margin-bottom:4px;}
+  .drp-custom input[type=date]{
+    border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:12px;background:var(--cream);
+    color:var(--ink);font-family:inherit;width:100%;
+  }
 
   /* ---------- Filters sidebar (off-canvas) ---------- */
   .sidebar-overlay{
@@ -240,14 +258,14 @@
   .fs-summary .chip{font-size:10.5px;padding:3px 8px 3px 6px;}
 
   /* ---------- Stats (compacto: Total, Persona, Tipo) ---------- */
-  .stats-compact{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;
-    border-radius:var(--radius);padding:9px 16px;margin-bottom:20px;}
-  .stats-compact .stat-mini{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-  .stats-compact .stat-mini-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+  .stats-compact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;
+    border-radius:12px;padding:7px 14px;margin-bottom:0;flex:1;min-width:0;}
+  .stats-compact .stat-mini{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0;}
+  .stats-compact .stat-mini-label{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;
     font-weight:600;color:var(--ink-faint);white-space:nowrap;}
-  .stats-compact .stat-mini-total{font-size:15px;font-weight:600;color:var(--ink);}
-  .stats-compact .chip-row{display:flex;flex-wrap:wrap;gap:5px;}
-  .stats-compact .chip{font-size:10.5px;padding:3px 8px 3px 6px;}
+  .stats-compact .stat-mini-total{font-size:14px;font-weight:600;color:var(--ink);}
+  .stats-compact .chip-row{display:flex;flex-wrap:wrap;gap:4px;}
+  .stats-compact .chip{font-size:10px;padding:2px 7px 2px 5px;}
   .stats-compact .stat-sep{width:1px;align-self:stretch;background:var(--border);}
 
   .chip-row{display:flex;flex-wrap:wrap;gap:6px;}
@@ -421,6 +439,8 @@
     cursor:pointer;font-size:13px;color:var(--ink-soft);font-family:inherit;}
   .icon-btn:hover{border-color:var(--ink-soft);}
   .list-footer-actions{margin-top:14px;}
+  .list-load-more{text-align:center;margin-top:14px;}
+  .list-load-more-done{font-size:11.5px;color:var(--ink-faint);}
 
   /* ---------- Kanban view ---------- */
   .kanban{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
@@ -639,22 +659,40 @@
     </div>
   </header>
 
-  <div class="quickbar glass">
-    <div class="quickbar-dates">
-      <div>
-        <div class="fg-label">Desde</div>
-        <input type="date" id="filterDesde">
+  <div class="toolbar-row">
+    <div class="stats stats-compact" id="statsBar"></div>
+    <div class="toolbar-right">
+      <div class="daterange-wrap">
+        <button class="btn btn-ghost btn-small" id="dateRangeBtn" onclick="toggleDateRangePopover(event)">
+          <span>📅</span><span id="dateRangeLabel">Este mes</span>
+        </button>
+        <div class="daterange-popover" id="dateRangePopover">
+          <div class="drp-presets">
+            <button type="button" onclick="applyDatePreset('hoy')">Hoy</button>
+            <button type="button" onclick="applyDatePreset('semana')">Esta semana</button>
+            <button type="button" onclick="applyDatePreset('mes')">Este mes</button>
+            <button type="button" onclick="applyDatePreset('mes-anterior')">Mes anterior</button>
+            <button type="button" onclick="applyDatePreset('anio')">Este año</button>
+            <button type="button" onclick="applyDatePreset('todo')">Todo el tiempo</button>
+          </div>
+          <div class="drp-custom">
+            <div>
+              <div class="fg-label">Desde</div>
+              <input type="date" id="filterDesde">
+            </div>
+            <div>
+              <div class="fg-label">Hasta</div>
+              <input type="date" id="filterHasta">
+            </div>
+          </div>
+        </div>
       </div>
-      <div>
-        <div class="fg-label">Hasta</div>
-        <input type="date" id="filterHasta">
-      </div>
+      <button class="btn btn-ghost btn-small" id="btnOpenFilters" onclick="openFiltersSidebar()">☰ Filtros</button>
     </div>
-    <button class="btn btn-ghost btn-small" id="btnOpenFilters" onclick="openFiltersSidebar()">☰ Filtros</button>
+  </div>
+  <div class="active-filter-chips-row">
     <div class="active-filter-chips" id="activeFilterChips"></div>
   </div>
-
-  <div class="stats stats-compact" id="statsBar"></div>
 
   <div class="main-grid">
     <div class="col-feed">
@@ -1022,6 +1060,7 @@ let state = {
   darkMode: false,
   modalCategorias: new Set(),
   listSort: {field:null, dir:null},
+  listLimit: 20,
   selectedPosts: new Set()
 };
 
@@ -1787,6 +1826,7 @@ function toggleFilter(kind, val){
   const setRef = filterSetFor(kind);
   if(setRef.has(val)) setRef.delete(val); else setRef.add(val);
   syncFilterChipUI();
+  resetListLimit();
   renderAll();
 }
 window.toggleFilter = toggleFilter;
@@ -1798,18 +1838,107 @@ function syncFilterChipUI(){
   document.querySelectorAll('#filterCategoriasChips .toggle-chip').forEach(c=>c.classList.toggle('active', state.filterCategorias.has(c.dataset.val)));
   renderActiveFilterSummary();
 }
-document.getElementById('filterDesde').addEventListener('change', e=>{ state.filterDesde=e.target.value; renderAll(); });
-document.getElementById('filterHasta').addEventListener('change', e=>{ state.filterHasta=e.target.value; renderAll(); });
-document.getElementById('filterSearch').addEventListener('input', e=>{ state.filterSearch=e.target.value; renderAll(); });
+document.getElementById('filterDesde').addEventListener('change', e=>{
+  state.filterDesde=e.target.value; resetListLimit(); updateDateRangeLabel(); renderAll();
+});
+document.getElementById('filterHasta').addEventListener('change', e=>{
+  state.filterHasta=e.target.value; resetListLimit(); updateDateRangeLabel(); renderAll();
+});
+document.getElementById('filterSearch').addEventListener('input', e=>{ state.filterSearch=e.target.value; resetListLimit(); renderAll(); });
+
+/* ---- Rango de fechas (estilo Looker Studio) ---- */
+function getMonthRange(offset=0){
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth()+offset, 1);
+  const last = new Date(first.getFullYear(), first.getMonth()+1, 0);
+  return [isoDate(first.getFullYear(),first.getMonth(),1), isoDate(last.getFullYear(),last.getMonth(),last.getDate())];
+}
+function getYearRange(offset=0){
+  const y = new Date().getFullYear()+offset;
+  return [isoDate(y,0,1), isoDate(y,11,31)];
+}
+function getWeekRange(){
+  const now = new Date();
+  const day = now.getDay();
+  const diffToMonday = (day===0 ? -6 : 1-day);
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate()+diffToMonday);
+  const sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate()+6);
+  return [isoDate(monday.getFullYear(),monday.getMonth(),monday.getDate()), isoDate(sunday.getFullYear(),sunday.getMonth(),sunday.getDate())];
+}
+function dateRangeLabelText(){
+  if(!state.filterDesde && !state.filterHasta) return 'Todo el tiempo';
+  const [mesStart, mesEnd] = getMonthRange(0);
+  if(state.filterDesde===mesStart && state.filterHasta===mesEnd) return 'Este mes';
+  const [prevStart, prevEnd] = getMonthRange(-1);
+  if(state.filterDesde===prevStart && state.filterHasta===prevEnd) return 'Mes anterior';
+  const [yearStart, yearEnd] = getYearRange(0);
+  if(state.filterDesde===yearStart && state.filterHasta===yearEnd) return 'Este año';
+  const [weekStart, weekEnd] = getWeekRange();
+  if(state.filterDesde===weekStart && state.filterHasta===weekEnd) return 'Esta semana';
+  const t = new Date();
+  const today = isoDate(t.getFullYear(), t.getMonth(), t.getDate());
+  if(state.filterDesde===today && state.filterHasta===today) return 'Hoy';
+  if(state.filterDesde && state.filterHasta) return `${formatDate(state.filterDesde)} – ${formatDate(state.filterHasta)}`;
+  if(state.filterDesde) return `Desde ${formatDate(state.filterDesde)}`;
+  return `Hasta ${formatDate(state.filterHasta)}`;
+}
+function updateDateRangeLabel(){
+  const el = document.getElementById('dateRangeLabel');
+  if(el) el.textContent = dateRangeLabelText();
+}
+function applyDateRange(start, end){
+  state.filterDesde = start || '';
+  state.filterHasta = end || '';
+  document.getElementById('filterDesde').value = state.filterDesde;
+  document.getElementById('filterHasta').value = state.filterHasta;
+  resetListLimit();
+  updateDateRangeLabel();
+  renderAll();
+}
+window.applyDateRange = applyDateRange;
+function applyDatePreset(preset){
+  let range;
+  const today = new Date();
+  if(preset==='hoy'){ const s=isoDate(today.getFullYear(),today.getMonth(),today.getDate()); range=[s,s]; }
+  else if(preset==='semana'){ range=getWeekRange(); }
+  else if(preset==='mes'){ range=getMonthRange(0); }
+  else if(preset==='mes-anterior'){ range=getMonthRange(-1); }
+  else if(preset==='anio'){ range=getYearRange(0); }
+  else { range=['','']; }
+  applyDateRange(range[0], range[1]);
+  closeDateRangePopover();
+}
+window.applyDatePreset = applyDatePreset;
+function toggleDateRangePopover(e){
+  if(e) e.stopPropagation();
+  document.getElementById('dateRangePopover').classList.toggle('open');
+}
+window.toggleDateRangePopover = toggleDateRangePopover;
+function closeDateRangePopover(){
+  const pop = document.getElementById('dateRangePopover');
+  if(pop) pop.classList.remove('open');
+}
+window.closeDateRangePopover = closeDateRangePopover;
+document.addEventListener('click', e=>{
+  const wrap = document.querySelector('.daterange-wrap');
+  if(wrap && !wrap.contains(e.target)) closeDateRangePopover();
+});
+/* Por defecto, el mes en curso. */
+(function initDefaultDateRange(){
+  const [s,e] = getMonthRange(0);
+  state.filterDesde = s; state.filterHasta = e;
+  document.getElementById('filterDesde').value = s;
+  document.getElementById('filterHasta').value = e;
+  updateDateRangeLabel();
+})();
 
 function clearFilters(){
-  state.filterDesde=''; state.filterHasta=''; state.filterSearch='';
   state.filterTipos.clear(); state.filterPersonas.clear(); state.filterObjetivos.clear();
   state.filterEstados.clear(); state.filterCategorias.clear();
-  document.getElementById('filterDesde').value='';
-  document.getElementById('filterHasta').value='';
+  state.filterSearch='';
   document.getElementById('filterSearch').value='';
   syncFilterChipUI();
+  resetListLimit();
   renderAll();
 }
 window.clearFilters = clearFilters;
@@ -1817,8 +1946,9 @@ window.clearFilters = clearFilters;
 function renderActiveFilterSummary(){
   const el = document.getElementById('activeFilterChips');
   const chips = [];
-  if(state.filterDesde) chips.push(`Desde ${formatDate(state.filterDesde)}`);
-  if(state.filterHasta) chips.push(`Hasta ${formatDate(state.filterHasta)}`);
+  const [mesStart, mesEnd] = getMonthRange(0);
+  const isDefaultMonth = state.filterDesde===mesStart && state.filterHasta===mesEnd;
+  if(!isDefaultMonth) chips.push(`📅 ${dateRangeLabelText()}`);
   state.filterTipos.forEach(v=>chips.push(`Tipo: ${v}`));
   state.filterEstados.forEach(v=>chips.push(`Estado: ${v}`));
   state.filterPersonas.forEach(v=>chips.push(`Persona: ${v}`));
@@ -2124,13 +2254,22 @@ function sortArrow(field){
   if(state.listSort.field !== field) return '';
   return state.listSort.dir==='asc' ? ' ▲' : ' ▼';
 }
+function resetListLimit(){
+  state.listLimit = 20;
+}
 function toggleSort(field){
   if(state.listSort.field !== field){ state.listSort = {field, dir:'asc'}; }
   else if(state.listSort.dir==='asc'){ state.listSort.dir = 'desc'; }
   else { state.listSort = {field:null, dir:null}; }
+  resetListLimit();
   renderLista();
 }
 window.toggleSort = toggleSort;
+function loadMoreList(){
+  state.listLimit += 20;
+  renderLista();
+}
+window.loadMoreList = loadMoreList;
 
 function toggleSelectPost(id){
   if(state.selectedPosts.has(id)) state.selectedPosts.delete(id);
@@ -2139,7 +2278,7 @@ function toggleSelectPost(id){
 }
 window.toggleSelectPost = toggleSelectPost;
 function toggleSelectAllVisible(checked){
-  const ids = getSortedListPosts().map(p=>p.id);
+  const ids = getVisibleListPosts().map(p=>p.id);
   ids.forEach(id=> checked ? state.selectedPosts.add(id) : state.selectedPosts.delete(id));
   renderLista();
 }
@@ -2183,10 +2322,14 @@ async function bulkDelete(){
 }
 window.bulkDelete = bulkDelete;
 
+function getVisibleListPosts(){
+  return getSortedListPosts().slice(0, state.listLimit);
+}
 function renderLista(){
   const el = document.getElementById('viewLista');
   if(state.view !== 'lista') return;
-  const posts = getSortedListPosts();
+  const allPosts = getSortedListPosts();
+  const posts = allPosts.slice(0, state.listLimit);
 
   if(state.posts.length===0){ el.innerHTML = emptyState(); return; }
 
@@ -2212,7 +2355,8 @@ function renderLista(){
         <button class="icon-btn" title="Editar todo" onclick="event.stopPropagation();openModal('${p.id}')">✎</button>
         <button class="icon-btn" title="Eliminar" onclick="event.stopPropagation();quickDelete('${p.id}')">✕</button>
       </div>` : '';
-    return `<tr class="row-hover${state.selectedPosts.has(p.id)?' row-selected':''}" onclick="openModal('${p.id}')">
+    const rowClick = editor ? `toggleSelectPost('${p.id}')` : `openModal('${p.id}')`;
+    return `<tr class="row-hover${state.selectedPosts.has(p.id)?' row-selected':''}" onclick="${rowClick}">
       ${checkbox}
       <td>${thumb}</td>
       <td class="editable-cell" onclick="handleCellClick(event,'${p.id}','fecha')">${formatDate(p.fecha)}</td>
@@ -2225,6 +2369,11 @@ function renderLista(){
       <td>${actions}</td>
     </tr>`;
   }).join('');
+
+  const hasMore = allPosts.length > posts.length;
+  const loadMoreBtn = hasMore
+    ? `<div class="list-load-more"><button class="btn btn-ghost btn-small" onclick="loadMoreList()">Cargar más (${posts.length} de ${allPosts.length})</button></div>`
+    : (allPosts.length>20 ? `<div class="list-load-more list-load-more-done">Mostrando los ${allPosts.length} posteos</div>` : '');
 
   const newBtn = editor ? `<div class="list-footer-actions"><button class="btn btn-primary btn-small" onclick="openModal()">+ Nuevo posteo</button></div>` : '';
 
@@ -2271,6 +2420,7 @@ function renderLista(){
       </tr></thead>
       <tbody>${rows}</tbody>
     </table>`}
+    ${loadMoreBtn}
     ${newBtn}
   `;
 }
@@ -2719,7 +2869,10 @@ function formatDate(str){
   if(!str) return '—';
   const d = new Date(str+'T00:00:00');
   if(isNaN(d)) return str;
-  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'short'});
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yy = d.getFullYear();
+  return `${dd}/${mm}/${yy}`;
 }
 function escapeHtml(str){
   return String(str??'').replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
